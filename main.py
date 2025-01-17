@@ -36,6 +36,46 @@ def show_help():
     """
     print(help_text)
 
+def execute_git_command(command):
+    try:
+        if command.startswith('git init'):
+            result = subprocess.run(['git', 'init'], shell=True, text=True, capture_output=True)
+            print(result.stdout)
+            if result.returncode != 0:
+                print(f"Error: {result.stderr}")
+
+        elif command.startswith('git add '):
+            files = command[8:].strip().split(' ')
+            result = subprocess.run(['git', 'add'] + files, shell=True, text=True, capture_output=True)
+            print(result.stdout)
+            if result.returncode != 0:
+                print(f"Error: {result.stderr}")
+
+        elif command.startswith('git commit '):
+            message = command[11:].strip()
+            result = subprocess.run(['git', 'commit', '-m', message], shell=True, text=True, capture_output=True)
+            print(result.stdout)
+            if result.returncode != 0:
+                print(f"Error: {result.stderr}")
+
+        elif command == 'git status':
+            result = subprocess.run(['git', 'status'], shell=True, text=True, capture_output=True)
+            print(result.stdout)
+            if result.returncode != 0:
+                print(f"Error: {result.stderr}")
+
+        elif command.startswith('git log'):
+            result = subprocess.run(['git', 'log'], shell=True, text=True, capture_output=True)
+            print(result.stdout)
+            if result.returncode != 0:
+                print(f"Error: {result.stderr}")
+
+        else:
+            print("Error: Unsupported git command.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+
 def execute_command(command):
     try:
         if command.startswith('cd '):
@@ -183,6 +223,8 @@ def execute_command(command):
                 print("Error: Invalid arguments for tar.")
         elif command == 'help' or command == 'h':
             show_help()
+        if command.startswith('git '):
+            execute_git_command(command)
         elif command == 'clear':
             os.system('cls' if os.name == 'nt' else 'clear')
         elif command.startswith('vim'):
