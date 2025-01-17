@@ -69,6 +69,11 @@ def execute_git_command(command):
             print(result.stdout)
             if result.returncode != 0:
                 print(f"Error: {result.stderr}")
+        elif command.startswith('git push'):
+            result = subprocess.run(['git', 'push'], shell=True, text=True, capture_output=True)
+            print(result.stdout)
+            if result.returncode != 0:
+                print(f"Error: {result.stderr}")
 
         else:
             print("Error: Unsupported git command.")
@@ -231,8 +236,9 @@ def execute_command(command):
             subprocess.run(["start", "cmd", "/K", "vim"], shell=True)
             print("Vim started in new background terminal.")
         else:
-            result = subprocess.run(command, shell=True, text=True, capture_output=True)
-            print(result.stdout)
+            if command != 'ls':
+                result = subprocess.run(command, shell=True, text=True, capture_output=True)
+                print(result.stdout)
     except Exception as e:
         print(f"Error: {e}")
 
