@@ -35,6 +35,12 @@ def show_help():
     - tar -xvf <archive_name>: Extract a tar archive
     - clear: Clear the terminal screen
     - vim: Start Vim in a new terminal window
+    - echo <text>: Print text to the terminal
+    - head <filename>: Display the first 10 lines of a file
+    - tail <filename>: Display the last 10 lines of a file
+    - grep <pattern> <filename>: Search for a pattern in a file
+    - find <path> <name>: Find files by name
+    - df: Display disk space usage
     - help: Show this help message
     """
     print(help_text)
@@ -100,6 +106,18 @@ def execute_command(command):
             change_ownership(command)
         elif command.startswith('tar '):
             handle_tar(command)
+        elif command.startswith('echo '):
+            print(command[5:].strip())
+        elif command.startswith('head '):
+            display_head(command[5:].strip())
+        elif command.startswith('tail '):
+            display_tail(command[5:].strip())
+        elif command.startswith('grep '):
+            search_in_file(command[6:].strip())
+        elif command.startswith('find '):
+            find_files(command[5:].strip())
+        elif command == 'df':
+            display_disk_usage()
         elif command in ['help', 'h']:
             show_help()
         elif command == 'clear':
@@ -264,6 +282,74 @@ def extract_tar_archive(archive_name):
         print(f"Extracted archive '{archive_name}'.")
     else:
         print(f"Error: Archive '{archive_name}' not found.")
+
+def display_head(filename):
+    """Display the first 10 lines of a file."""
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            for _ in range(10):
+                line = file.readline()
+                if not line:
+                    break
+                print(line, end='')
+    else:
+        print(f"Error: '{filename}' not found.")
+
+def display_tail(filename):
+    """Display the last 10 lines of a file."""
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            lines = file.readlines()
+            for line in lines[-10:]:
+                print(line, end='')
+    else:
+        print(f"Error: '{filename}' not found.")
+
+def search_in_file(command):
+    """Search for a pattern in a file."""
+    parts = command.split(' ', 1)
+    if len(parts) == 2:
+        pattern, filename = parts[0], parts[1]
+        if os.path.exists(filename):
+            with open(filename, 'r') as file:
+                for line in file:
+                    if pattern in line:
+                        print(line, end='')
+        else:
+            print(f"Error: '{filename}' not found.")
+    else:
+        print("Error: Invalid arguments for grep.")
+
+def find_files(command):
+    """Find files by name."""
+    parts = command.split(' ', 1)
+    if len(parts) == 2:
+        path, name = parts[0], parts[1]
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                if name in file:
+                    print(os.path.join(root, file))
+    else:
+        print("Error: Invalid arguments for find.")
+
+def display_disk_usage():
+    """Display disk space usage."""
+    if os.name == 'nt':  # Windows
+        try:
+            # Try using WMIC
+            result = subprocess.run(['wmic', 'logicaldisk', 'get', 'size,freespace,caption'], text=True, capture_output=True)
+            if result.returncode == 0:
+                print(result.stdout)
+            else:
+                raise Exception("WMIC command failed.")
+        except Exception as e:
+            print("WMIC not available, trying PowerShell...")
+            # Fallback to PowerShell
+            result = subprocess.run(['powershell', '-Command', 'Get-PSDrive'], text=True, capture_output=True)
+            print(result.stdout)
+    else:  # Unix-like
+        result = subprocess.run(['df', '-h'], text=True, capture_output=True)
+        print(result.stdout)
 
 def run_external_command(command):
     """Run an external command."""
